@@ -35,7 +35,7 @@
         "fortigate-autoscale-core"
     ],
     "scripts": {
-        "setup": "rm -rf dist && mkdir dist && npx tsc && cp cloud-function-package.json ./dist/package.json && cd ./dist && cp -r node_modules/fortigate-autoscale-core fortigate-autoscale-core && zip -r  gcp.zip index.js package.json  fortigate-autoscale-core && cd ..",
+        "setup": "mkdir dist && npx tsc && cp cloud-function-package.json ./dist/package.json && cd ./dist && cp -r node_modules/fortigate-autoscale-core fortigate-autoscale-core && zip -r  gcp.zip index.js package.json  fortigate-autoscale-core && cd ..",
         "test": "nyc mocha --recursive './test/mocha/*.js'"
     },
     "author": "fortinet",
