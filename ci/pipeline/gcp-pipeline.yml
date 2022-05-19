@@ -1,0 +1,83 @@
+resources:
+    - name: terraform-gcp-autoscale-repo
+      type: git
+      icon: github
+      source:
+          uri: https://github.com/fshuva/fortigate-autoscale-gcp.git
+          branch: main
+    - name: terraform-image
+      type: registry-image
+      icon: terraform
+      source:
+          repository: hashicorp/terraform
+          tag: 1.1.8
+    - name: node
+      type: registry-image
+      source:
+          repository: node
+          tag: 16.3.0-stretch
+
+jobs:
+    - name: terraform-deployment-pipeline
+      plan:
+          - get: node
+          - get: terraform-image
+          - get: terraform-gcp-autoscale-repo
+            trigger: true
+          - task: node-install
+            image: node
+            config:
+                inputs:
+                    - name: terraform-gcp-autoscale-repo
+                outputs:
+                    - name: dependencies
+                      path: terraform-gcp-autoscale-repo/node_modules
+                platform: linux
+                run:
+                    path: npm
+                    args: ['install']
+                    dir: terraform-gcp-autoscale-repo
+          - task: dist
+            image: node
+            config:
+                inputs:
+                    - name: terraform-gcp-autoscale-repo
+                    - name: dependencies
+                      path: repo/node_modules
+                platform: linux
+                run:
+                    path: npm
+                    args: ['run', 'setup']
+                    dir: repo
+          - task: terraform-init
+            image: terraform-image
+            config:
+                inputs:
+                    - name: terraform-gcp-autoscale-repo
+                outputs:
+                    - name: terraform-gcp-autoscale-repo
+                platform: linux
+                run:
+                    path: terraform
+                    dir: terraform-gcp-autoscale-repo
+                    args:
+                        - init
+
+          - task: terraform-plan
+            image: terraform-image
+            config:
+                inputs:
+                    - name: terraform-gcp-autoscale-repo
+                outputs:
+                    - name: terraform-gcp-autoscale-repo
+                platform: linux
+                run:
+                    path: terraform
+                    dir: terraform-gcp-autoscale-repo
+                    args:
+                        - plan
+                        - -var
+                        - project="dev-project-001-166400"
+                        - -var
+                        - service_account="966517025500-compute@developer.gserviceaccount.com"
+                        - -var
